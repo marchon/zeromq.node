@@ -439,9 +439,9 @@ namespace zmq {
 
         // get our next frame it may have the target address and safely copy to our buffer
         zmq_msg_init (&msg2);
-        zmq_msg_more(&msg1);
-        zmq_recvmsg (s->monitor_socket_, &msg2, 0);
-
+        zmq_msg_more (&msg1);
+        if (zmq_recvmsg (s->monitor_socket_, &msg2, 0) < 0)
+          NanThrowError(ExceptionFromError());
         // protect from overflow
         size_t len = zmq_msg_size(&msg2);
         // MIN message size and buffer size with null padding
