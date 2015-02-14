@@ -395,7 +395,7 @@ namespace zmq {
 
   void
   Socket::UV_PollCallback(uv_poll_t* handle, int status, int events) {
-    if (!(status == 0)) NanThrowTypeError("Socket is closed");
+    if (!(status == 0)) NanThrowTypeError("Socket Not Ready Status !=0");
 
     Socket* s = static_cast<Socket*>(handle->data);
     s->CallbackIfReady();
@@ -445,8 +445,8 @@ namespace zmq {
 
         // get our next frame it may have the target address and safely copy to our buffer
         zmq_msg_init (&msg2);
-        if (!(zmq_msg_more(&msg1) != 0)) NanThrowTypeError("Socket is closed");
-        if (!(zmq_recvmsg (s->monitor_socket_, &msg2, 0) != -1)) NanThrowTypeError("Socket is closed") ;
+        if (!(zmq_msg_more(&msg1) != 0)) NanThrowTypeError("Socket did not receive more msg");
+        if (!(zmq_recvmsg (s->monitor_socket_, &msg2, 0) != -1)) NanThrowTypeError("Socket receive msg failed") ;
 
         // protect from overflow
         size_t len = zmq_msg_size(&msg2);
