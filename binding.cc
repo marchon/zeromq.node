@@ -26,6 +26,11 @@
 #include <node_version.h>
 #include <node_buffer.h>
 #include <zmq.h>
+#ifdef __RELEASE__
+#define NDEBUG 1   /*Disable Asserts in Production Code
+                     to prevent critical failures
+                   */
+#endif
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -390,7 +395,7 @@ namespace zmq {
 
   void
   Socket::UV_PollCallback(uv_poll_t* handle, int status, int events) {
-    assert(status == 0);
+    if !(status == 0) return -1;
 
     Socket* s = static_cast<Socket*>(handle->data);
     s->CallbackIfReady();
@@ -434,14 +439,14 @@ namespace zmq {
 #if ZMQ_VERSION_MAJOR >= 4
         uint8_t *data = (uint8_t *) zmq_msg_data (&msg1);
         event_id = *(uint16_t *) (data);
-        event_value = *(uint32_t *) (data + 2); 
+        event_value = *(uint32_t *) (data + 2);
 
         zmq_msg_t msg2; /* 4.x has 2 messages per event */
 
         // get our next frame it may have the target address and safely copy to our buffer
         zmq_msg_init (&msg2);
-        assert (zmq_msg_more(&msg1) != 0);
-        assert (zmq_recvmsg (s->monitor_socket_, &msg2, 0) != -1);
+        if !(zmq_msg_more(&msg1) != 0) return -1;
+        if !(zmq_recvmsg (s->monitor_socket_, &msg2, 0) != -1) return -1;
 
         // protect from overflow
         size_t len = zmq_msg_size(&msg2);
@@ -1266,7 +1271,7 @@ namespace zmq {
     #if ZMQ_VERSION_MAJOR >= 4
     NODE_DEFINE_CONSTANT(target, ZMQ_STREAM);
     #endif
-    
+
     NODE_DEFINE_CONSTANT(target, ZMQ_POLLIN);
     NODE_DEFINE_CONSTANT(target, ZMQ_POLLOUT);
     NODE_DEFINE_CONSTANT(target, ZMQ_POLLERR);
